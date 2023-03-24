@@ -1,0 +1,17 @@
+{
+  "profiles": {
+    "Sitemplate": {
+      "commandName": "Project"
+    },
+    "Motowien": {
+      "commandName": "Project",
+      "commandLineArgs": "motowien.json",
+      "workingDirectory": "C:\\dev\\my\\motowien\\motowien\\source"
+    },
+    "Motowien clean": {
+      "commandName": "Project",
+      "commandLineArgs": "motowien.json clean",
+      "workingDirectory": "C:\\dev\\my\\motowien\\motowien\\source"
+    }
+  }
+}
