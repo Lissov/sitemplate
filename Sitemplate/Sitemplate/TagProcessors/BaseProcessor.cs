@@ -3,14 +3,9 @@ using System.Linq;
 
 namespace Sitemplate.TagProcessors
 {
-    class BaseProcessor
+    abstract class BaseProcessor
     {
-        public const string TagName = "";
-
-        public virtual Tuple<string, bool> Process(string content, TagInfo tag, TemplateContext context)
-        {
-            return new Tuple<string, bool>(content, false);
-        }
+        public abstract Tuple<string, bool> Process(string content, TagInfo tag, TemplateContext context);
 
         protected void PushParameters(TemplateContext tagContext, TagInfo tag)
         {

@@ -1,6 +1,7 @@
 ﻿using Sitemplate.TagProcessors;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Sitemplate
 {
@@ -19,8 +20,8 @@ namespace Sitemplate
                 var c = content[current];
                 switch (c)
                 {
-                    case '$':
-                        var varname = "$" + ReadLiteral(content, current);
+                    case Constants.VariablePrefix:
+                        var varname = Constants.VariablePrefix + ReadLiteral(content, current, true);
                         
                         if (context.Variables.ContainsKey(varname))
                         {
@@ -33,11 +34,17 @@ namespace Sitemplate
                         break;
                     case '<':
                         var tagName = ReadLiteral(content, current);
-                        var tag = parser.FindFirstTag(content, tagName, current);
                         var processor = TagFactory.GetProcessor(tagName);
-                        var r = processor.Process(content, tag, context);
-                        content = r.Item1;
-                        if (!r.Item2) current++;
+                        if (processor != null)
+                        {
+                            var tag = parser.FindFirstTag(content, tagName, current);
+                            var r = processor.Process(content, tag, context);
+                            content = r.Item1;
+                            if (!r.Item2) current++;
+                        } else
+                        {
+                            current++;
+                        }
                         break;
                     default:
                         throw new Exception("Something failed");
@@ -49,24 +56,28 @@ namespace Sitemplate
         private int GetStartingIndex(string content, int current)
         {
             var tagStart = content.IndexOf('<', current);
-            var varStart = content.IndexOf("$", current);
+            var varStart = content.IndexOf(Constants.VariablePrefix, current);
             return Math.Min(
                 tagStart < 0 ? int.MaxValue : tagStart,
                 varStart < 0 ? int.MaxValue : varStart);
         }
 
-        private string ReadLiteral(string content, int tagStart)
+        private string ReadLiteral(string content, int tagStart, bool allowBraces = false)
         {
             var i = tagStart + 1;
             var tn = "";
+            int bc = 0;
             while (i < content.Length && (
                     (content[i] >= '0' && content[i] <= '9')
                     || (content[i] >= 'a' && content[i] <= 'z')
-                    || (content[i] >= 'A' && content[i] <= 'Z')
+                    || (content[i] >= 'A' && content[i] <= 'Z'
+                    || (allowBraces && (bc == 1 || content[i] == '(' || content[i] == ')')))
                     )
                   )
             {
+                if (content[i] == '(') bc += 1;
                 tn += content[i];
+                if (content[i] == ')') return tn;
                 i++;
             }
             return tn;
@@ -75,7 +86,6 @@ namespace Sitemplate
         public string ReplaceInContent(string content, TagInfo tag, string injectContent)
         {
             return ReplaceInPosition(content, tag.Start, tag.End, injectContent);
-            return content.Substring(0, tag.Start) + injectContent + content.Substring(tag.End);
         }
 
         public string ReplaceInPosition(string content, int start, int end, string injectContent)

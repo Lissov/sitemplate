@@ -4,7 +4,7 @@ namespace Sitemplate.TagProcessors
 {
     class IfProcessor : BaseProcessor
     {
-        public new const string TagName = Constants.Tag.If;
+        public const string TagName = Constants.Tag.If;
 
         public override Tuple<string, bool> Process(string content, TagInfo tag, TemplateContext context)
         {

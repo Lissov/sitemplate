@@ -4,7 +4,7 @@ namespace Sitemplate.TagProcessors
 {
     class InjectProcessor : BaseProcessor
     {
-        public new const string TagName = Constants.Tag.Inject;
+        public const string TagName = Constants.Tag.Inject;
 
         public override Tuple<string, bool> Process(string content, TagInfo tag, TemplateContext context)
         {

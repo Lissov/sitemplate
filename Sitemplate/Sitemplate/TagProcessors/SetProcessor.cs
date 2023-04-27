@@ -4,7 +4,7 @@ namespace Sitemplate.TagProcessors
 {
     class SetProcessor : BaseProcessor
     {
-        public new const string TagName = Constants.Tag.Set;
+        public const string TagName = Constants.Tag.Set;
 
         public override Tuple<string, bool> Process(string content, TagInfo tag, TemplateContext context)
         {

@@ -18,6 +18,6 @@ namespace Sitemplate
             public const string Else = "<else>";
         }
 
-        public const string VariablePrefix = "$";
+        public const char VariablePrefix = '$';
     }
 }

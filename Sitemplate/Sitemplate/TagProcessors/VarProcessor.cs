@@ -4,7 +4,7 @@ namespace Sitemplate.TagProcessors
 {
     class VarProcessor : BaseProcessor
     {
-        public new const string TagName = Constants.Tag.Declare;
+        public const string TagName = Constants.Tag.Declare;
 
         public override Tuple<string, bool> Process(string content, TagInfo tag, TemplateContext context)
         {

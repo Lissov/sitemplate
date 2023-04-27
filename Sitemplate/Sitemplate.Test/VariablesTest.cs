@@ -20,5 +20,20 @@ namespace Sitemplate.Test
 
             Assert.AreEqual("X - 1", result);
         }
+
+        [Test]
+        public void SpecialChars()
+        {
+            var file = @"
+                <var $(r-1)></var><set $(r-1)>A</set>
+                <var $r></var><set $r>B</set>
+                $(r-1)x : $r-1";
+            var processor = new TextProcessor();
+            var context = new TemplateContext(processor);
+
+            var result = processor.ProcessContent(file, context).Trim();
+
+            Assert.AreEqual("Ax : B-1", result);
+        }
     }
 }
