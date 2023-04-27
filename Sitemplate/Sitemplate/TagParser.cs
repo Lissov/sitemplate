@@ -8,9 +8,9 @@ namespace Sitemplate
 {
     public class TagParser
     {
-        public TagInfo FindFirstTag(string content, string tag)
+        public TagInfo FindFirstTag(string content, string tag, int startIndex = 0)
         {
-            var start = content.IndexOf("<" + tag, StringComparison.InvariantCultureIgnoreCase);
+            var start = content.IndexOf("<" + tag, startIndex, StringComparison.InvariantCultureIgnoreCase);
             var nextch = start >= 0 ? content[start + ("<" + tag).Length] : '-';
             while (start >=0
                 && nextch != ' ' && nextch != '\t' && nextch != '\r' && nextch != '\n')

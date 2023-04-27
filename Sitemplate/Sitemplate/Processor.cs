@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sitemplate
 {
@@ -11,6 +9,7 @@ namespace Sitemplate
     {
         private Descriptor descriptor;
         private Dictionary<string, string> templates = new Dictionary<string, string>();
+
         public Processor(Descriptor descriptor)
         {
            this.descriptor = descriptor;
@@ -72,8 +71,8 @@ namespace Sitemplate
             {
                 if (Directory.Exists(item))
                 {
-                    Console.Error.WriteLine("Directories not yet supported");
-                    //throw new Exception("Directories not yet supported");
+                    //Console.Error.WriteLine("Directories not yet supported");
+                    throw new Exception("Directories not yet supported");
                 } else
                 {
                     ProcessFile(item);
@@ -87,189 +86,17 @@ namespace Sitemplate
             var content = File.ReadAllText(Path.Combine(descriptor.InputFolder, item));
 
             // process
-            var updated = ProcessContent(content, new TemplateContext());
+            var textProcessor = new TextProcessor()
+            {
+                Templates = templates
+            };
+            var updated = textProcessor.ProcessContent(content, new TemplateContext(textProcessor));
 
             if (string.IsNullOrEmpty(updated))
                 return;
 
             // write to output
             WriteToOutput(item, updated);
-        }
-
-        private string ProcessContent(string content, TemplateContext context)
-        {
-            content = ProcessVariables(content, context);
-            content = InjectTemplates(content, context);
-            return content;
-        }
-
-        private string DeclareVariables(string content, TemplateContext context)
-        {
-            throw new NotImplementedException();
-        }
-
-        private string ProcessVariables(string content, TemplateContext context)
-        {
-            var proceed = true;
-            while (proceed)
-            {
-                content = ProcessVariablesStep(content, context, out proceed);
-            }
-            return content;
-        }
-        private string ProcessVariablesStep(string content, TemplateContext context, out bool replaced)
-        {
-            replaced = false;
-
-            bool b;
-            content = ProcessIfs(content, context, out b);
-            replaced |= b;
-            content = ProcessDeclares(content, context, out b);
-            replaced |= b;
-            content = ProcessSets(content, context, out b);
-            replaced |= b;
-
-            // variables can contain other variables, so need to iterate till all replaced
-            foreach (var var in context.Variables)
-            {
-                var varToReplace = var.Key;
-                if (content.Contains(varToReplace))
-                {
-                    var value = EvaluateVariable(var.Value, context);
-                    content = content.Replace(varToReplace, (value ?? "").ToString());
-                    replaced = true;
-                }
-            }
-            return content;
-        }
-
-        private string ProcessSets(string content, TemplateContext context, out bool processed)
-        {
-            var tagname = Constants.Tag.Set;
-            var parser = new TagParser();
-            var tag = parser.FindFirstTag(content, tagname);
-            processed = tag != null;
-            while (tag != null)
-            {
-                if (tag.Parameters.Length != 1)
-                    throw new Exception("'set' must have one parameter");
-                context.Variables[tag.Parameters[0].Key] = ProcessContent(tag.TagInside, context);
-                content = ReplaceInContent(content, tag, "");
-
-                tag = parser.FindFirstTag(content, tagname);
-            }
-            return content;
-        }
-
-        private string ProcessIfs(string content, TemplateContext context, out bool processed)
-        {
-            var tagname = Constants.Tag.If;
-            var parser = new TagParser();
-            var tag = parser.FindFirstTag(content, tagname);
-            processed = tag != null;
-            while (tag != null)
-            {
-                if (tag.Parameters.Length != 1)
-                    throw new Exception("'if' requires single parameter: " + tag.TagContent);
-                var processedKey = ProcessContent(tag.Parameters[0].Key, context);
-                var processedValue = tag.Parameters[0].Value != null ? ProcessContent(tag.Parameters[0].Value, context) : null;
-                var ifelse = tag.TagInside.Split(Constants.Tag.Else);
-                if (processedKey == processedValue)
-                    content = ReplaceInContent(content, tag, ifelse.Length > 0 ? ifelse[0] : "");
-                else
-                    content = ReplaceInContent(content, tag, ifelse.Length > 1 ? ifelse[1] : "");
-
-                tag = parser.FindFirstTag(content, tagname);
-            }
-            return content;
-        }
-
-
-        private string ProcessDeclares(string content, TemplateContext context, out bool processed)
-        {
-            var tagname = Constants.Tag.Declare;
-            var parser = new TagParser();
-            var tag = parser.FindFirstTag(content, tagname);
-            processed = tag != null;
-            while (tag != null)
-            {
-                foreach (var par in tag.Parameters)
-                {
-                    context.Variables[par.Key] = par.Value;
-                }
-                content = ReplaceInContent(content, tag, "");
-                tag = parser.FindFirstTag(content, tagname);
-            }
-            return content;
-        }
-
-        private object EvaluateVariable(object value, TemplateContext context)
-        {
-            // For now be simple
-            return value;
-        }
-
-        private string InjectTemplates(string content, TemplateContext context)
-        {
-            var tagname = Constants.Tag.Inject;
-            var parser = new TagParser();
-            var tag = parser.FindFirstTag(content, tagname);
-
-            if (tag == null)
-                return content;
-
-            if (tag.Parameters.Length < 1 || tag.Parameters[0].Value != null)
-                throw new Exception($"Tag '{tagname}' must have first parameter as template name");
-            var templatename = tag.Parameters[0].Key;
-            if (!templates.ContainsKey(templatename))
-                throw new Exception($"Template not found: '{templatename}'.");
-            var tagContext = context.Clone();
-            PushParameters(tagContext, tag);
-
-            var template = templates[templatename];
-            template = ProcessContent(template, tagContext);
-            var indentation = GetIndentation(content, tag.Start);
-            template = InjectIndentation(template, indentation);
-
-            content = ReplaceInContent(content, tag, template);
-            Console.WriteLine($"\tInjected template: {templatename}");
-
-            return InjectTemplates(content, tagContext);
-        }
-
-        private static string ReplaceInContent(string content, TagInfo tag, string injectContent)
-        {
-            return content.Substring(0, tag.Start) + injectContent + content.Substring(tag.End);
-        }
-
-        private void PushParameters(TemplateContext tagContext, TagInfo tag)
-        {
-            foreach (var par in tag.Parameters)
-            {
-                if (par.Key.StartsWith(Constants.VariablePrefix))
-                {
-                    tagContext.Variables[par.Key] = par.Value;
-                }
-            }
-        }
-
-        private string InjectIndentation(string template, object indentation)
-        {
-            var lines = template.Split('\n');
-            if (lines.Length <= 1)
-                return template;
-
-            var indented = lines.Take(1).Union(lines.Skip(1).Select(l => indentation + l));
-            return string.Join('\n', indented);
-        }
-
-        private object GetIndentation(string content, int start)
-        {
-            var lineStart = content.LastIndexOf('\n', start);
-            var spaces = content.Substring(lineStart + 1, start - lineStart - 1);
-            if (string.IsNullOrWhiteSpace(spaces))
-                return spaces ?? "";
-            return "";
         }
 
         private void WriteToOutput(string filePath, string content)
