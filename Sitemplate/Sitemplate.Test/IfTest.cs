@@ -78,5 +78,18 @@ namespace Sitemplate.Test
 
             Assert.AreEqual("B", result);
         }
+
+        /*[Test]
+        public void IfNotDeclared()
+        {
+            var file = "<if $v1=\"\">A<else>B</if>";
+            var processor = new TextProcessor();
+            var context = new TemplateContext(processor);
+
+            var result = processor.ProcessContent(file, context);
+
+            Assert.AreEqual("A", result);
+        }*/
+
     }
 }

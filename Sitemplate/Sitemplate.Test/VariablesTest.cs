@@ -35,5 +35,6 @@ namespace Sitemplate.Test
 
             Assert.AreEqual("Ax : B-1", result);
         }
+
     }
 }

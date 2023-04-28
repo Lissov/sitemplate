@@ -11,11 +11,14 @@ namespace Sitemplate
         public static class Tag
         {
             public const string Inject = "inject";
+
             public const string Declare = "var";
             public const string Set = "set";
-            public const string If = "if";
 
+            public const string If = "if";
             public const string Else = "<else>";
+
+            public const string For = "for";
         }
 
         public const char VariablePrefix = '$';

@@ -53,6 +53,16 @@ namespace Sitemplate
             return content;
         }
 
+        public object EvaluateValue(string value, TemplateContext context)
+        {
+            var trimmed = value.Trim();
+            if (context.Variables.ContainsKey(trimmed))
+            {
+                return context.Variables[trimmed];
+            }
+            return ProcessContent(value, context);
+        }
+
         private int GetStartingIndex(string content, int current)
         {
             var tagStart = content.IndexOf('<', current);

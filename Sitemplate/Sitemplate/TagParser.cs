@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sitemplate
 {
@@ -49,7 +47,8 @@ namespace Sitemplate
             WaitingParameterOrEqual,
             WaitingValue,
             ReadingValueSingleQuote,
-            ReadingValueDoubleQuote
+            ReadingValueDoubleQuote,
+            ReadingValueLiteral
         }
         private TagParameter[] ParseParameters(string tagContent)
         {
@@ -110,6 +109,26 @@ namespace Sitemplate
                                 break;
                         }
                         break;
+                    case ParseState.ReadingValueLiteral:
+                        switch (ch)
+                        {
+                            case '=':
+                                throw new Exception("ErrLV: error in literal value");
+                            case ' ':
+                            case '\t':
+                            case '\r':
+                            case '\n':
+                                state = ParseState.WaitingParameterOrEqual;
+                                tp.Value = value;
+                                break;
+                            case '"':
+                            case '\'':
+                                throw new Exception("Err21:" + unexpectedExc);
+                            default:
+                                value += ch;
+                                break;
+                        }
+                        break;
                     case ParseState.WaitingValue:
                         switch (ch)
                         {
@@ -117,6 +136,10 @@ namespace Sitemplate
                             case '\t':
                             case '\r':
                             case '\n':
+                                break;
+                            case Constants.VariablePrefix:
+                                state = ParseState.ReadingValueLiteral;
+                                value = "" + Constants.VariablePrefix;
                                 break;
                             case '"':
                                 state = ParseState.ReadingValueDoubleQuote;
@@ -164,6 +187,10 @@ namespace Sitemplate
             if (state == ParseState.ReadingKey)
             {
                 tp = new TagParameter { Key = value };
+            }
+            if (state == ParseState.ReadingValueLiteral)
+            {
+                tp.Value = value;
             }
             if (tp != null)
                 result.Add(tp);

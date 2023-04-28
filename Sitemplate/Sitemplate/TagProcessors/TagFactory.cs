@@ -10,6 +10,7 @@
                 case VarProcessor.TagName: return new VarProcessor();
                 case SetProcessor.TagName: return new SetProcessor();
                 case IfProcessor.TagName: return new IfProcessor();
+                case ForProcessor.TagName: return new ForProcessor();
                 default:
                     return null;
             }

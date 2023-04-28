@@ -13,7 +13,7 @@ namespace Sitemplate.TagProcessors
             {
                 if (par.Key.StartsWith(Constants.VariablePrefix))
                 {
-                    tagContext.Variables[par.Key] = par.Value;
+                    tagContext.Variables[par.Key] = tagContext.processor.EvaluateValue(par.Value, tagContext);
                 }
             }
         }
