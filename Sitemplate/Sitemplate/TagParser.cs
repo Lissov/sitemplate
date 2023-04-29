@@ -24,20 +24,43 @@ namespace Sitemplate
             if (i == content.Length)
                 throw new Exception($"Error in content: '{tag}' tag not closed.");
 
-            var closeTag = "</" + tag + ">";
-            var end = content.IndexOf(closeTag, i, StringComparison.InvariantCultureIgnoreCase);
-            if (end < 0)
-                throw new Exception($"Error in content: no closing '{tag}' tag.");
-
-            var result = new TagInfo { Start = start, End = end + closeTag.Length };
+            var end = FindCloseTag(content, i, tag);
+            
+            var result = new TagInfo { Start = start, End = end.Item1 + end.Item2};
 
             var tagContent = content.Substring(start + tag.Length + 1, i - start - tag.Length - 1);
             result.Parameters = ParseParameters(tagContent);
 
             result.TagContent = tagContent;
-            result.TagInside = content.Substring(i + 1, end - i - 1);
+            result.TagInside = content.Substring(i + 1, end.Item1 - i - 1);
 
             return result;
+        }
+
+        private Tuple<int, int> FindCloseTag(string content, int i, string tag)
+        {
+            var openTag = "<" + tag;
+            var closeTag = "</" + tag + ">";
+            var index = i;
+            var cnt = 1; // one opening tag exists
+            do
+            {
+                var nextOpen = content.IndexOf(openTag, index+1, StringComparison.InvariantCultureIgnoreCase);
+                var nextClose = content.IndexOf(closeTag, index + 1, StringComparison.InvariantCultureIgnoreCase);
+                if (nextClose < 0)
+                    throw new Exception($"Closing tag [{closeTag}] not found.");
+                if (nextOpen >= 0 && nextOpen < nextClose)
+                {
+                    cnt++;
+                    index = nextOpen + 1;
+                }
+                else
+                {
+                    cnt--;
+                    index = nextClose;
+                }
+            } while (cnt > 0);
+            return new Tuple<int, int>(index, closeTag.Length);
         }
 
         private enum ParseState
@@ -137,10 +160,10 @@ namespace Sitemplate
                             case '\r':
                             case '\n':
                                 break;
-                            case Constants.VariablePrefix:
+                            /*case Constants.VariablePrefix:
                                 state = ParseState.ReadingValueLiteral;
                                 value = "" + Constants.VariablePrefix;
-                                break;
+                                break;*/
                             case '"':
                                 state = ParseState.ReadingValueDoubleQuote;
                                 value = "";
@@ -219,7 +242,7 @@ namespace Sitemplate
             return result.ToArray();*/
         }
 
-        private string[] SplitParameters(string tagContent)
+        /*private string[] SplitParameters(string tagContent)
         {
             var parSplit = tagContent.Split(new char[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries);
             var allSplit = parSplit.SelectMany(p =>
@@ -234,7 +257,7 @@ namespace Sitemplate
                 return new[] { p.Substring(0, eq), "=", p.Substring(eq + 1) };
             }).ToArray();
             return allSplit;
-        }
+        }*/
 
         private int FindTagEnd(string content, int start)
         {

@@ -1,22 +1,11 @@
 ﻿using System;
 using System.Linq;
 
-namespace Sitemplate.TagProcessors
+namespace Sitemplate.Processors
 {
-    abstract class BaseProcessor
+    abstract class BaseProcessor<T, U>
     {
-        public abstract Tuple<string, bool> Process(string content, TagInfo tag, TemplateContext context);
-
-        protected void PushParameters(TemplateContext tagContext, TagInfo tag)
-        {
-            foreach (var par in tag.Parameters)
-            {
-                if (par.Key.StartsWith(Constants.VariablePrefix))
-                {
-                    tagContext.Variables[par.Key] = tagContext.processor.EvaluateValue(par.Value, tagContext);
-                }
-            }
-        }
+        public abstract U Process(string content, T parameter, TemplateContext context);
 
         protected object GetIndentation(string content, int start)
         {

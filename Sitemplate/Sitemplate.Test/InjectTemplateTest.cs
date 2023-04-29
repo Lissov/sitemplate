@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using Sitemplate.Processors;
 
 namespace Sitemplate.Test
 {
@@ -20,10 +21,10 @@ namespace Sitemplate.Test
         [Test]
         public void InjectWithVariables()
         {
-            var file = "<h1>H1</h1> <inject templVar $var=\"value1\"></inject>End";
+            var file = "<h1>H1</h1> <inject templVar var=\"value1\"></inject>End";
             var processor = new TextProcessor();
             var context = new TemplateContext(processor);
-            processor.Templates.Add("templVar", "<div>Var=$var</div>");
+            processor.Templates.Add("templVar", "<div>Var={{var}}</div>");
 
             var result = processor.ProcessContent(file, context);
 

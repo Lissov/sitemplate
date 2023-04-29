@@ -3,18 +3,22 @@ using Sitemplate.Processors;
 
 namespace Sitemplate.Test
 {
-    public class SpecialTest
+    public class ObjectTest
     {
         [Test]
-        public void NotClosedHtml()
+        public void ParseJsonTest()
         {
-            var file = "<body><div></a></div>";
+            var file = @"
+                <var v1></var>
+                <set v1 json>{one: '1', two: '2'}</set>
+                {{v1.one}} and {{v1.two}}";
             var processor = new TextProcessor();
             var context = new TemplateContext(processor);
 
             var result = processor.ProcessContent(file, context).Trim();
 
-            Assert.AreEqual("<body><div></a></div>", result);
+            Assert.AreEqual("1 and 2", result);
         }
+
     }
 }

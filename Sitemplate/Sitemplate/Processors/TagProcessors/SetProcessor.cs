@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Linq;
 
-namespace Sitemplate.TagProcessors
+namespace Sitemplate.Processors.TagProcessors
 {
-    class SetProcessor : BaseProcessor
+    class SetProcessor : VarProcessor
     {
-        public const string TagName = Constants.Tag.Set;
+        public new const string TagName = Constants.Tag.Set;
 
         public override Tuple<string, bool> Process(string content, TagInfo tag, TemplateContext context)
         {
@@ -17,18 +16,6 @@ namespace Sitemplate.TagProcessors
             content = context.processor.ReplaceInContent(content, tag, "");
 
             return new Tuple<string, bool>(content, true);
-        }
-
-        private object ProcessWithMode(string value, string mode, TemplateContext context)
-        {
-            switch (mode)
-            {
-                case "list":
-                    var values = value.Split(',', ';').Select(x => x.Trim());
-                    return values.Select(v => context.processor.ProcessContent(v, context)).ToList();
-                default:
-                    return context.processor.ProcessContent(value, context);
-            }
         }
     }
 }

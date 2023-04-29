@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 
-namespace Sitemplate.TagProcessors
+namespace Sitemplate.Processors.TagProcessors
 {
-    class ForProcessor : BaseProcessor
+    class ForProcessor : BaseTagProcessor
     {
         public const string TagName = Constants.Tag.For;
 
@@ -17,18 +17,19 @@ namespace Sitemplate.TagProcessors
             var varName = tag.Parameters[0].Key;
             var listName = tag.Parameters[2].Key;
 
-            if (!context.Variables.ContainsKey(listName))
-                throw new Exception($"List '{listName}' not defined: " + tag.TagContent);
-            var list = context.Variables[listName] as IEnumerable;
-            if (list == null)
-                throw new Exception($"List '{listName}' is not an IEnumerable and can't be used in ${TagName}: " + tag.TagContent);
+            var list = context.Variables.ContainsKey(listName)
+                ? context.Variables[listName] as IEnumerable
+                : null;
             var res = "";
-            var iterationContext = context.Clone();
-            foreach (var item in list)
+            if (list != null)
             {
-                iterationContext.Variables[varName] = item;
-                var template = tag.TagInside;
-                res += context.processor.ProcessContent(template, iterationContext);
+                var iterationContext = context.Clone();
+                foreach (var item in list)
+                {
+                    iterationContext.Variables[varName] = item;
+                    var template = tag.TagInside;
+                    res += context.processor.ProcessContent(template, iterationContext);
+                }
             }
                 
             content = context.processor.ReplaceInContent(content, tag, res);

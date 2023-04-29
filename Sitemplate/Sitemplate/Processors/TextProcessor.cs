@@ -1,13 +1,13 @@
-﻿using Sitemplate.TagProcessors;
+﻿using Sitemplate.Processors.TagProcessors;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace Sitemplate
+namespace Sitemplate.Processors
 {
     public class TextProcessor
     {
         public Dictionary<string, string> Templates = new Dictionary<string, string>();
+        private MoustasheProcessor moustasheProc = new MoustasheProcessor();
 
         public string ProcessContent(string content, TemplateContext context)
         {
@@ -20,7 +20,7 @@ namespace Sitemplate
                 var c = content[current];
                 switch (c)
                 {
-                    case Constants.VariablePrefix:
+                    /*case Constants.VariablePrefix:
                         var varname = Constants.VariablePrefix + ReadLiteral(content, current, true);
                         
                         if (context.Variables.ContainsKey(varname))
@@ -31,6 +31,11 @@ namespace Sitemplate
                         } else {
                             current++;
                         }
+                        break;*/
+                    case Constants.MoustashePrefix:
+                        var v = ReadMoustasheContent(content, current);
+                        var pr = EvaluateValue(v, context);
+                        content = ReplaceInPosition(content, current, current + v.Length, (pr ?? "").ToString());
                         break;
                     case '<':
                         var tagName = ReadLiteral(content, current);
@@ -53,20 +58,29 @@ namespace Sitemplate
             return content;
         }
 
+        private string ReadMoustasheContent(string content, int current)
+        {
+            var li = content.IndexOf(Constants.MoustasheEnd, current);
+            return content.Substring(current, li - current + 2);
+        }
+
         public object EvaluateValue(string value, TemplateContext context)
         {
-            var trimmed = value.Trim();
-            if (context.Variables.ContainsKey(trimmed))
+            if (moustasheProc.IsMoustashe(value))
             {
-                return context.Variables[trimmed];
+                return moustasheProc.Process(value, null, context);
             }
-            return ProcessContent(value, context);
+            else
+            {
+                return ProcessContent(value, context);
+            }
         }
 
         private int GetStartingIndex(string content, int current)
         {
             var tagStart = content.IndexOf('<', current);
-            var varStart = content.IndexOf(Constants.VariablePrefix, current);
+            //var varStart = content.IndexOf(Constants.VariablePrefix, current);
+            var varStart = content.IndexOf("{{", current);
             return Math.Min(
                 tagStart < 0 ? int.MaxValue : tagStart,
                 varStart < 0 ? int.MaxValue : varStart);

@@ -22,5 +22,9 @@ namespace Sitemplate
         }
 
         public const char VariablePrefix = '$';
+
+        public const char MoustashePrefix = '{';
+        public const string MoustasheStart = "{{";
+        public const string MoustasheEnd = "}}";
     }
 }

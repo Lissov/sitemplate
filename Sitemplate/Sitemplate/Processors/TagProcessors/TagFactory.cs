@@ -1,8 +1,8 @@
-﻿namespace Sitemplate.TagProcessors
+﻿namespace Sitemplate.Processors.TagProcessors
 {
     class TagFactory
     {
-        public static BaseProcessor GetProcessor(string tagName)
+        public static BaseTagProcessor GetProcessor(string tagName)
         {
             switch (tagName)
             {

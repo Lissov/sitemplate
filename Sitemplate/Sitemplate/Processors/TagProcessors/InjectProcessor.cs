@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Sitemplate.TagProcessors
+namespace Sitemplate.Processors.TagProcessors
 {
-    class InjectProcessor : BaseProcessor
+    class InjectProcessor : BaseTagProcessor
     {
         public const string TagName = Constants.Tag.Inject;
 
