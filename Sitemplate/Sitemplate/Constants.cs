@@ -21,7 +21,8 @@ namespace Sitemplate
             public const string For = "for";
         }
 
-        public const char VariablePrefix = '$';
+        // decided to skip special handling of variables starting with $ for now.
+        //public const char VariablePrefix = '$';
 
         public const char MoustashePrefix = '{';
         public const string MoustasheStart = "{{";

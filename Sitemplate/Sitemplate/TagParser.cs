@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Sitemplate
 {
@@ -8,19 +7,12 @@ namespace Sitemplate
     {
         public TagInfo FindFirstTag(string content, string tag, int startIndex = 0)
         {
-            var start = content.IndexOf("<" + tag, startIndex, StringComparison.InvariantCultureIgnoreCase);
-            var nextch = start >= 0 ? content[start + ("<" + tag).Length] : '-';
-            while (start >=0
-                && nextch != ' ' && nextch != '\t' && nextch != '\r' && nextch != '\n')
-            {
-                start = content.IndexOf("<" + tag, start + 1, StringComparison.InvariantCultureIgnoreCase);
-                nextch = start >= 0 ? content[start + ("<" + tag).Length] : '-';
-            }
+            var start = FindOpeningTag(content, tag, startIndex);
 
             if (start < 0)
                 return null;
 
-            int i = FindTagEnd(content, start);
+            int i = FindTagEnd(content, start + 1);
             if (i == content.Length)
                 throw new Exception($"Error in content: '{tag}' tag not closed.");
 
@@ -37,6 +29,20 @@ namespace Sitemplate
             return result;
         }
 
+        private int FindOpeningTag(string content, string tag, int start)
+        {
+            var openTag = "<" + tag;
+            start = content.IndexOf(openTag, start, StringComparison.InvariantCultureIgnoreCase);
+            var nextch = start >= 0 ? content[start + openTag.Length] : '-';
+            while (start >= 0
+                && nextch != ' ' && nextch != '\t' && nextch != '\r' && nextch != '\n')
+            {
+                start = content.IndexOf(openTag, start + 1, StringComparison.InvariantCultureIgnoreCase);
+                nextch = start >= 0 ? content[start + (openTag).Length] : '-';
+            }
+            return start;
+        }
+
         private Tuple<int, int> FindCloseTag(string content, int i, string tag)
         {
             var openTag = "<" + tag;
@@ -45,7 +51,7 @@ namespace Sitemplate
             var cnt = 1; // one opening tag exists
             do
             {
-                var nextOpen = content.IndexOf(openTag, index+1, StringComparison.InvariantCultureIgnoreCase);
+                var nextOpen = FindOpeningTag(content, tag, index+1);
                 var nextClose = content.IndexOf(closeTag, index + 1, StringComparison.InvariantCultureIgnoreCase);
                 if (nextClose < 0)
                     throw new Exception($"Closing tag [{closeTag}] not found.");
@@ -219,45 +225,7 @@ namespace Sitemplate
                 result.Add(tp);
 
             return result.ToArray();
-
-            /*var paramsSplitted = SplitParameters(tagContent);
-            var result = new List<TagParameter>();
-
-            var i = 0;
-            while (i < paramsSplitted.Length)
-            {
-                if (paramsSplitted[i] == "=")
-                    throw new Exception("Unexpected '=' in tag parameters.");
-                var tp = new TagParameter { Key = paramsSplitted[i] };
-                i++;
-                if (i < paramsSplitted.Length && paramsSplitted[i] == "=")
-                {
-                    if (i + 1 == paramsSplitted.Length)
-                        throw new Exception("Missing parameter value tag parameters.");
-                    tp.Value = paramsSplitted[i + 1];
-                    i += 2;
-                }
-                result.Add(tp);
-            }
-            return result.ToArray();*/
         }
-
-        /*private string[] SplitParameters(string tagContent)
-        {
-            var parSplit = tagContent.Split(new char[] { ' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            var allSplit = parSplit.SelectMany(p =>
-            {
-                var eq = p.IndexOf('=');
-                if (eq == -1 || p == "=")
-                    return new[] { p };
-                if (eq == 0)
-                    return new[] { "=", p.Substring(1) };
-                if (eq == p.Length - 1)
-                    return new[] { "=", p.Substring(0, p.Length - 1) };
-                return new[] { p.Substring(0, eq), "=", p.Substring(eq + 1) };
-            }).ToArray();
-            return allSplit;
-        }*/
 
         private int FindTagEnd(string content, int start)
         {

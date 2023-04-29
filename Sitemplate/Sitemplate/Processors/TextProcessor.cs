@@ -116,11 +116,5 @@ namespace Sitemplate.Processors
         {
             return content.Substring(0, start) + injectContent + content.Substring(end);
         }
-
-        private object EvaluateVariable(object value, TemplateContext context)
-        {
-            // For now be simple
-            return value;
-        }
     }
 }
