@@ -35,7 +35,9 @@ namespace Sitemplate.Processors
                     case Constants.MoustashePrefix:
                         var v = ReadMoustasheContent(content, current);
                         var pr = EvaluateValue(v, context);
-                        content = ReplaceInPosition(content, current, current + v.Length, (pr ?? "").ToString());
+                        var replaced = ReplaceInPosition(content, current, current + v.Length, (pr ?? "").ToString());
+                        content = replaced.Item1;
+                        current = replaced.Item2;
                         break;
                     case '<':
                         var tagName = ReadLiteral(content, current);
@@ -45,7 +47,7 @@ namespace Sitemplate.Processors
                             var tag = parser.FindFirstTag(content, tagName, current);
                             var r = processor.Process(content, tag, context);
                             content = r.Item1;
-                            if (!r.Item2) current++;
+                            current = r.Item2;
                         } else
                         {
                             current++;
@@ -107,14 +109,31 @@ namespace Sitemplate.Processors
             return tn;
         }
 
-        public string ReplaceInContent(string content, TagInfo tag, string injectContent)
+        public Tuple<string, int> ReplaceInContent(string content, TagInfo tag, string injectContent)
         {
             return ReplaceInPosition(content, tag.Start, tag.End, injectContent);
         }
 
-        public string ReplaceInPosition(string content, int start, int end, string injectContent)
+        public Tuple<string, int> ReplaceInPosition(string content, int start, int end, string injectContent)
         {
-            return content.Substring(0, start) + injectContent + content.Substring(end);
+            var result = content.Substring(0, start) + injectContent + content.Substring(end);
+            if (string.IsNullOrWhiteSpace(injectContent) && result.Length > 0)
+            {
+                var st = start >= result.Length ? result.Length - 1 : start;
+                var ib = result.LastIndexOf('\n', st);
+                if (ib < 0)
+                    ib = 0;
+                var ie = result.IndexOf('\n', st);
+                if (ie < 0)
+                    ie = result.Length - 1;
+                var rem = result.Substring(ib, ie - ib);
+                if (string.IsNullOrWhiteSpace(rem))
+                {
+                    result = result.Substring(0, ib) + result.Substring(ie);
+                    return new Tuple<string, int>(result, ib);
+                }
+            }
+            return new Tuple<string, int>(result, start);
         }
     }
 }

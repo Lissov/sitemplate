@@ -6,7 +6,7 @@ namespace Sitemplate.Processors.TagProcessors
     {
         public const string TagName = Constants.Tag.If;
 
-        public override Tuple<string, bool> Process(string content, TagInfo tag, TemplateContext context)
+        public override Tuple<string, int> Process(string content, TagInfo tag, TemplateContext context)
         {
             if (tag.Parameters.Length != 1)
                 throw new Exception("'if' requires single parameter: " + tag.TagContent);
@@ -21,12 +21,11 @@ namespace Sitemplate.Processors.TagProcessors
                     : context.processor.ProcessContent(tag.Parameters[0].Value, context)
                 : null;
             var ifelse = SplitByElse(tag.TagInside);
-            if (processedKey.ToString() == processedValue.ToString())
-                content = context.processor.ReplaceInContent(content, tag, ifelse.Item1);
-            else
-                content = context.processor.ReplaceInContent(content, tag, ifelse.Item2);
-
-            return new Tuple<string, bool>(content, true);
+            var branch = processedKey.ToString() == processedValue.ToString()
+                ? ifelse.Item1
+                : ifelse.Item2;
+            var cleared = TagParser.CleanLineBreaksInTag(branch);
+            return ReplaceInContent(content, tag, context, cleared, true);
         }
 
         private Tuple<string, string> SplitByElse(string tagInside)

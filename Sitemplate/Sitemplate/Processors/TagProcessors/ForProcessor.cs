@@ -7,7 +7,7 @@ namespace Sitemplate.Processors.TagProcessors
     {
         public const string TagName = Constants.Tag.For;
 
-        public override Tuple<string, bool> Process(string content, TagInfo tag, TemplateContext context)
+        public override Tuple<string, int> Process(string content, TagInfo tag, TemplateContext context)
         {
             if (tag.Parameters.Length != 3)
                 throw new Exception($"'{TagName}' requires 3 parameters: " + tag.TagContent);
@@ -32,9 +32,7 @@ namespace Sitemplate.Processors.TagProcessors
                 }
             }
                 
-            content = context.processor.ReplaceInContent(content, tag, res);
-
-            return new Tuple<string, bool>(content, true);
+            return ReplaceInContent(content, tag, context, res, true);
         }
     }
 }

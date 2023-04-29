@@ -7,7 +7,7 @@ namespace Sitemplate.Processors
     {
         public abstract U Process(string content, T parameter, TemplateContext context);
 
-        protected object GetIndentation(string content, int start)
+        protected string GetIndentation(string content, int start)
         {
             var lineStart = content.LastIndexOf('\n', start);
             var spaces = content.Substring(lineStart + 1, start - lineStart - 1);
@@ -16,13 +16,26 @@ namespace Sitemplate.Processors
             return "";
         }
 
-        protected string InjectIndentation(string template, object indentation)
+        protected string RemoveFirstLineIndentation(string content)
+        {
+            var ind = 0;
+            while (ind < content.Length && (content[ind] == ' ' || content[ind] == '\t')) ind++;
+            var indentation = content.Substring(0, ind);
+            return string.Join('\n',
+                    content
+                        .Split('\n')
+                        .Select(x => x.StartsWith(indentation) ? x.Substring(ind) : x)
+                );
+        }
+
+        protected string InjectIndentation(string template, string indentation)
         {
             var lines = template.Split('\n');
             if (lines.Length <= 1)
                 return template;
 
-            var indented = lines.Take(1).Union(lines.Skip(1).Select(l => indentation + l));
+            var indented = lines.Take(1).ToList();
+            indented.AddRange(lines.Skip(1).Select(l => indentation + l));
             return string.Join('\n', indented);
         }
     }

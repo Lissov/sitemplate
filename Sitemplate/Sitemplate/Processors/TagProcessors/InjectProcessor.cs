@@ -6,7 +6,7 @@ namespace Sitemplate.Processors.TagProcessors
     {
         public const string TagName = Constants.Tag.Inject;
 
-        public override Tuple<string, bool> Process(string content, TagInfo tag, TemplateContext context)
+        public override Tuple<string, int> Process(string content, TagInfo tag, TemplateContext context)
         {
             if (tag.Parameters.Length < 1 || tag.Parameters[0].Value != null)
                 throw new Exception($"Tag '{TagName}' must have first parameter as template name");
@@ -19,14 +19,12 @@ namespace Sitemplate.Processors.TagProcessors
 
             var template = templates[templatename];
             template = context.processor.ProcessContent(template, tagContext);
-            var indentation = GetIndentation(content, tag.Start);
-            template = InjectIndentation(template, indentation);
+            
+            var res = ReplaceInContent(content, tag, context, template, cleanIndentation: false);
 
-            content = context.processor.ReplaceInContent(content, tag, template);
             Console.WriteLine($"\tInjected template: {templatename}");
 
-
-            return new Tuple<string, bool>(content, true);
+            return res;
         }
     }
 }

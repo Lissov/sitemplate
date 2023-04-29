@@ -24,10 +24,51 @@ namespace Sitemplate
             result.Parameters = ParseParameters(tagContent);
 
             result.TagContent = tagContent;
-            result.TagInside = content.Substring(i + 1, end.Item1 - i - 1);
+            result.TagInside = CleanLineBreaksInTag(content.Substring(i + 1, end.Item1 - i - 1));
 
             return result;
         }
+
+        public static string CleanLineBreaksInTag(string tagInside)
+        {
+            return CleanupFirstLine(CleanupLastLine(tagInside));
+        }
+
+        private static string CleanupFirstLine(string str)
+        {
+            int i = 0;
+            while (i < str.Length && (
+                    str[i] == ' ' || str[i] == '\t' || str[i] == '\r'
+                ))
+                i++;
+            if (i < str.Length && str[i] == '\n')
+            {
+                var j = i + 1;
+                //while (j < str.Length && str[j] == ' ' || str[j] == '\t') j++;
+                return str.Substring(j);
+            }
+            return str;
+        }
+
+        private static string CleanupLastLine(string str)
+        {
+            int i = str.Length - 1;
+            while (i > 0 && (
+                    str[i] == ' ' || str[i] == '\t'
+                ))
+                i--;
+            if (i > 0 && str[i] == '\n')
+            {
+                if (i > 1 && str[i - 1] == '\r')
+                    return str.Substring(0, i - 1);
+                else
+                    return str.Substring(0, i);
+            }
+                
+            return str;
+        }
+
+
 
         private int FindOpeningTag(string content, string tag, int start)
         {
