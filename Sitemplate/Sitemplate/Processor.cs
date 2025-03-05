@@ -84,14 +84,15 @@ namespace Sitemplate
         private void ProcessFile(string item)
         {
             Console.WriteLine("Processing file: " + item);
-            var content = File.ReadAllText(Path.Combine(descriptor.InputFolder, item));
+            string fullFileName = Path.Combine(descriptor.InputFolder, item);
+            var content = File.ReadAllText(fullFileName);
 
             // process
             var textProcessor = new TextProcessor()
             {
                 Templates = templates
             };
-            var updated = textProcessor.ProcessContent(content, new TemplateContext(textProcessor));
+            var updated = textProcessor.ProcessContent(content, new TemplateContext(textProcessor, fullFileName));
 
             if (string.IsNullOrEmpty(updated))
                 return;

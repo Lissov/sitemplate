@@ -78,5 +78,20 @@ namespace Sitemplate.Test
 
             Assert.AreEqual("Ax : B-1", result);
         }
+
+
+        [Test]
+        public void FileName()
+        {
+            var file = @"
+                <var ctx context></var>
+                {{ctx.FileName}}";
+            var processor = new TextProcessor();
+            var context = new TemplateContext(processor, "C:/temp/MyFile.html");
+
+            var result = processor.ProcessContent(file, context).Trim();
+
+            Assert.AreEqual("MyFile.html", result);
+        }
     }
 }

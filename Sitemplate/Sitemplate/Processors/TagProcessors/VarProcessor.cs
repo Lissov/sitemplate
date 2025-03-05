@@ -27,15 +27,24 @@ namespace Sitemplate.Processors.TagProcessors
 
         protected object ProcessWithMode(string value, string mode, TemplateContext context)
         {
-            switch (mode)
+            try
             {
-                case "list":
-                    var values = value.Split(',', ';').Select(x => x.Trim());
-                    return values.Select(v => context.processor.ProcessContent(v, context)).ToList();
-                case "json":
-                    return JsonConvert.DeserializeObject(value);
-                default:
-                    return context.processor.ProcessContent(value, context);
+                switch (mode)
+                {
+                    case "list":
+                        var values = value.Split(',', ';').Select(x => x.Trim());
+                        return values.Select(v => context.processor.ProcessContent(v, context)).ToList();
+                    case "json":
+                        return JsonConvert.DeserializeObject(value);
+                    case "context":
+                        return context;
+                    default:
+                        return context.processor.ProcessContent(value, context);
+                }
+            } catch (Exception ex)
+            {
+                Console.WriteLine($"Error while parsing with mode [{mode}] the value: " + value);
+                throw;
             }
         }
     }
